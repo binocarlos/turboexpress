@@ -1,10 +1,4 @@
-turboexpress
-============
-
-A quick way to get a node.js express website booted
-
-```js
-
+var request = require('request');
 var Turbo = require('../src');
 
 var webserver = Turbo({
@@ -13,9 +7,5 @@ var webserver = Turbo({
 })
 
 webserver.start(function(){
-	
-	// yay we have a turbo express
-	
-})
 
-```
+})
