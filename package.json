@@ -21,7 +21,10 @@
     "send": "~0.1.1",
     "socket.io": "~0.9.16",
     "redis": "~0.8.3",
-    "passport.socketio": "~1.2.0"
+    "passport.socketio": "~1.2.0",
+    "express-partials": "~0.1.1",
+    "ejs": "~0.8.4",
+    "passport": "~0.1.17"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
