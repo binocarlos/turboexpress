@@ -1,6 +1,6 @@
 {
   "name": "turboexpress",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A quick way to get a node.js express website running",
   "main": "src/index.js",
   "scripts": {
@@ -24,7 +24,10 @@
     "passport.socketio": "~1.2.0",
     "express-partials": "~0.1.1",
     "ejs": "~0.8.4",
-    "passport": "~0.1.17"
+    "passport": "~0.1.17",
+    "connect-redis": "~1.4.5",
+    "install": "~0.1.7",
+    "npm": "~1.3.1"
   },
   "devDependencies": {
     "grunt": "~0.4.1",

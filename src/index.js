@@ -24,11 +24,11 @@ var http = require('http');
 var express = require('express');
 var partials = require('express-partials');
 var socketio = require('socket.io');
-var RedisStore = require('./redisstore')(express);
 var passport = require('passport');
 var url = require('url');
 var fs = require('fs');
 var send = require('send');
+var RedisStore = require('connect-redis')(express);
 
 module.exports = factory;
 
@@ -89,9 +89,7 @@ function factory(options){
     CORE
     
   */
-  app.cookieMaxAge = 60*60;
   app.sessionStore = new RedisStore(options.redis);
-
   app.use(express.favicon(options.favicon));
   app.use(express.query());
   app.use(express.responseTime());
@@ -99,10 +97,8 @@ function factory(options){
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(express.session({
-    key: options.cookieKey,
     store: app.sessionStore,
-    secret: options.cookieSecret,
-    cookie: { maxAge: (app.cookieMaxAge !== 0) ? app.cookieMaxAge : null }
+    secret: options.cookieSecret
   }))
 
   if(options.auth){
