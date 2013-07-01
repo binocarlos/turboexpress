@@ -8,6 +8,15 @@ describe('turboexpress', function(){
 		
 	})
 
+	it('should emit events', function(done) {
+		var app = Turbo();
+
+		app.on('testevent', done);
+
+		app.emit('testevent');
+		
+	})
+
 	it('should host a simple website and emit events', function(done){
 
 		this.timeout(1000);

@@ -24,7 +24,6 @@ var http = require('http');
 var express = require('express');
 var partials = require('express-partials');
 var socketio = require('socket.io');
-var passport = require('passport');
 var url = require('url');
 var fs = require('fs');
 var send = require('send');
@@ -34,6 +33,8 @@ module.exports = factory;
 
 function factory(options){
 
+  options = options || {};
+
   options = _.defaults(options, {
     port:80,
     document_root:__dirname+'/www',
@@ -41,6 +42,7 @@ function factory(options){
     templates:null,
     cookieKey:'sdf8sdfsd8f78sd78',
     cookieSecret:'sedf98s7dfjsdfi',
+    auth:null,
     redis:{
       host:'127.0.0.1',
       port:6379
@@ -101,12 +103,6 @@ function factory(options){
     secret: options.cookieSecret
   }))
 
-  if(options.auth){
-    app.use(passport.initialize());
-    app.use(passport.session());
-    app.passport = passport;  
-  }
-  
   /*
   
     SOCKETS
