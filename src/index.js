@@ -21,6 +21,7 @@ var async = require('async');
 var EventEmitter = require('events').EventEmitter;
 var engines = require('consolidate');
 var http = require('http');
+var passport = require('passport');
 var express = require('express');
 var partials = require('express-partials');
 var socketio = require('socket.io');
@@ -85,24 +86,6 @@ function factory(options){
     })
   }
 
-
-  /*
-
-    CORE
-    
-  */
-  app.sessionStore = new RedisStore(options.redis);
-  app.use(express.favicon(options.favicon));
-  app.use(express.query());
-  app.use(express.responseTime());
-  app.use(express.cookieParser(options.cookieSecret));
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
-  app.use(express.session({
-    store: app.sessionStore,
-    secret: options.cookieSecret
-  }))
-
   /*
   
     SOCKETS
@@ -125,74 +108,71 @@ function factory(options){
       'xhr-polling',
       'jsonp-polling'
     ])
-
-        /*
-    if(options.sockets){
-      app.io.set('authorization', passportSocketIo.authorize({
-        key:'connect.sid',
-        cookieParser:app.cookieParser,
-        store:app.sessionStore,
-        secret:options.cookieSecret,
-        fail:function(data, accept){
-          accept(null, true);
-        },
-        success:function(data, accept) {
-          accept(null, true);
-        }
-      }))
-    }
-    */
-
   }
 
   /*
-  
-    NORMAL
+
+    CORE
     
   */
-  app.prepare('normal', function(){
+  app.sessionStore = new RedisStore(options.redis);
+  app.use(express.favicon(options.favicon));
+  app.use(express.query());
+  app.use(express.responseTime());
+  app.use(express.cookieParser(options.cookieSecret));
+  app.use(express.bodyParser());
+  app.use(express.methodOverride());
+  app.use(express.session({
+    store: app.sessionStore,
+    secret: options.cookieSecret
+  }))
 
-    /*
+  if(options.auth){
+    app.use(passport.initialize());
+    app.use(passport.session());
+    app.passport = passport;  
+  }
+
+
+  /*
+  
+    ERROR & CACHING
     
-      ERROR & CACHING
-      
-    */
-    app.configure('development', function(){
-      app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
-      app.use(function(req, res, next){
+  */
+  app.configure('development', function(){
+    //app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+    app.use(function(req, res, next){
 
-        /*
+      /*
+      
+        no-caching unless we are live
         
-          no-caching unless we are live
-          
-        */
-        res.on('header', function(){
-          res.setHeader('cache-control', 'no-cache');
-          res.setHeader('pragma', 'no-cache');
-          res.setHeader('expires', '-1');
-        })
-        next();
+      */
+      res.on('header', function(){
+        res.setHeader('cache-control', 'no-cache');
+        res.setHeader('pragma', 'no-cache');
+        res.setHeader('expires', '-1');
       })
+      next();
     })
-
-    app.configure('production', function(){
-      app.use(express.errorHandler());
-    })
-
-
-    /*
-    
-      TEMPLATES
-      
-    */
-    if(options.templates){
-      app.engine('ejs', engines.ejs);
-      app.set('view engine', 'ejs');
-      app.set('views', options.view_root);
-      app.use(partials());
-    }
-
   })
+
+  app.configure('production', function(){
+    //app.use(express.errorHandler());
+  })
+
+
+  /*
+  
+    TEMPLATES
+    
+  */
+  if(options.templates){
+    app.engine('ejs', engines.ejs);
+    app.set('view engine', 'ejs');
+    app.set('views', options.view_root);
+    app.use(partials());
+  }
 
   app.start = function(done){
    
@@ -242,3 +222,23 @@ function factory(options){
   
   return app;
 }
+
+
+
+
+          /*
+      if(options.sockets){
+        app.io.set('authorization', passportSocketIo.authorize({
+          key:'connect.sid',
+          cookieParser:app.cookieParser,
+          store:app.sessionStore,
+          secret:options.cookieSecret,
+          fail:function(data, accept){
+            accept(null, true);
+          },
+          success:function(data, accept) {
+            accept(null, true);
+          }
+        }))
+      }
+      */
