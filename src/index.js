@@ -27,8 +27,9 @@ var partials = require('express-partials');
 var socketio = require('socket.io');
 var url = require('url');
 var fs = require('fs');
-var send = require('send');
 var RedisStore = require('connect-redis')(express);
+var connectDomain = require('connect-domain');
+var ecstatic = require('ecstatic');
 
 module.exports = factory;
 
@@ -85,7 +86,7 @@ function factory(options){
       })
     })
   }
-
+  
   /*
   
     SOCKETS
@@ -116,6 +117,7 @@ function factory(options){
     
   */
   app.sessionStore = new RedisStore(options.redis);
+  app.use(connectDomain());
   app.use(express.favicon(options.favicon));
   app.use(express.query());
   app.use(express.responseTime());
@@ -137,17 +139,11 @@ function factory(options){
   /*
   
     ERROR & CACHING
-    
-  */
+   
   app.configure('development', function(){
     //app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
     app.use(function(req, res, next){
 
-      /*
-      
-        no-caching unless we are live
-        
-      */
       res.on('header', function(){
         res.setHeader('cache-control', 'no-cache');
         res.setHeader('pragma', 'no-cache');
@@ -160,7 +156,7 @@ function factory(options){
   app.configure('production', function(){
     //app.use(express.errorHandler());
   })
-
+ */
 
   /*
   
@@ -179,6 +175,7 @@ function factory(options){
     app.run_prepares();
     app.use(app.router);
 
+
     /*
     
       static file server
@@ -186,6 +183,9 @@ function factory(options){
     */
     if(fs.existsSync(options.document_root)){
 
+      app.use(ecstatic(options.document_root));
+
+      /*
       app.use(function(req, res, next){
 
         function error(err) {
@@ -210,6 +210,7 @@ function factory(options){
           .on('stream', emitstream)
           .pipe(res);
       })
+      */
     }
 
     server.listen(options.port || 80, function(error){
