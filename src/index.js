@@ -22,14 +22,15 @@ var EventEmitter = require('events').EventEmitter;
 var engines = require('consolidate');
 var http = require('http');
 var passport = require('passport');
+var passportSocketIo = require('passport.socketio');
 var express = require('express');
 var partials = require('express-partials');
 var socketio = require('socket.io');
 var url = require('url');
 var fs = require('fs');
+var send = require('send');
 var RedisStore = require('connect-redis')(express);
 var connectDomain = require('connect-domain');
-var ecstatic = require('ecstatic');
 
 module.exports = factory;
 
@@ -87,30 +88,7 @@ function factory(options){
     })
   }
   
-  /*
-  
-    SOCKETS
-    
-  */
-  if(options.sockets){
-    app.io = socketio.listen(server);
-
-    if(process.env.NODE_ENV=='production'){
-      app.io.enable('browser client minification');
-      app.io.enable('browser client etag');
-      app.io.enable('browser client gzip');
-    }
-    
-    app.io.set('log level', 1);
-    app.io.set('transports', [
-      'websocket',
-      'flashsocket',
-      'htmlfile',
-      'xhr-polling',
-      'jsonp-polling'
-    ])
-  }
-
+ 
   /*
 
     CORE
@@ -135,6 +113,43 @@ function factory(options){
     app.passport = passport;  
   }
 
+
+   /*
+  
+    SOCKETS
+    
+  */
+  if(options.sockets){
+    app.io = socketio.listen(server);
+
+    if(process.env.NODE_ENV=='production'){
+      app.io.enable('browser client minification');
+      app.io.enable('browser client etag');
+      app.io.enable('browser client gzip');
+    }
+    
+    app.io.set('log level', 1);
+    app.io.set('transports', [
+      'websocket',
+      'flashsocket',
+      'htmlfile',
+      'xhr-polling',
+      'jsonp-polling'
+    ])
+  
+    app.io.set("authorization", passportSocketIo.authorize({
+      cookieParser: express.cookieParser, //or connect.cookieParser
+      key:          'connect.sid',        //the cookie where express (or connect) stores its session id.
+      secret:         options.cookieSecret,  //the session secret to parse the cookie
+      store:         app.sessionStore,      //the session store that express uses
+      fail: function(data, accept) {      // *optional* callbacks on success or fail
+        accept(null, false);              // second param takes boolean on whether or not to allow handshake
+      },
+      success: function(data, accept) {
+        accept(null, true);
+      }
+    }))
+  }
 
   /*
   
@@ -175,7 +190,6 @@ function factory(options){
     app.run_prepares();
     app.use(app.router);
 
-
     /*
     
       static file server
@@ -183,9 +197,6 @@ function factory(options){
     */
     if(fs.existsSync(options.document_root)){
 
-      app.use(ecstatic(options.document_root));
-
-      /*
       app.use(function(req, res, next){
 
         function error(err) {
@@ -210,7 +221,6 @@ function factory(options){
           .on('stream', emitstream)
           .pipe(res);
       })
-      */
     }
 
     server.listen(options.port || 80, function(error){
