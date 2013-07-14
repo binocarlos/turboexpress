@@ -1,6 +1,6 @@
 {
   "name": "turboexpress",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A quick way to get a node.js express website running",
   "main": "src/index.js",
   "scripts": {

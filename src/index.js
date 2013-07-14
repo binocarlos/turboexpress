@@ -143,7 +143,7 @@ function factory(options){
       secret:         options.cookieSecret,  //the session secret to parse the cookie
       store:         app.sessionStore,      //the session store that express uses
       fail: function(data, accept) {      // *optional* callbacks on success or fail
-        accept(null, false);              // second param takes boolean on whether or not to allow handshake
+        accept(null, true);              // second param takes boolean on whether or not to allow handshake
       },
       success: function(data, accept) {
         accept(null, true);
